@@ -1,28 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": ".",
+    "module": "NodeNext",
+    "target": "esnext",
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "sourceMap": false,
+    "allowJs": true,
+    "newLine": "LF",
+    "baseUrl": "./",
     "typeRoots": [
-      "node_modules/@types"
+      "node_modules/@types",
     ],
+    "declaration": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "NodeNext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
     "paths": {
       "@/*": [
         "src/*"
@@ -30,9 +25,16 @@
       "*": [
         "types/*"
       ]
-    },
+    }
   },
   "include": [
-    "src"
+    "typings.d.ts",
+    "src/**/*.ts"
   ],
+  "exclude": [
+    "node_modules",
+    "demo/simple/dist",
+    "src/**/*.test.ts",
+    "rollup.config.js",
+  ]
 }

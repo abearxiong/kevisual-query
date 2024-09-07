@@ -1,17 +1,25 @@
 type AdapterOpts = {
   url: string;
   headers?: Record<string, string>;
-  body: Record<string, any>;
+  body?: Record<string, any>;
+  timeout?: number;
 };
 export const adapter = async (opts: AdapterOpts) => {
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const timeout = opts.timeout || 60000; // 默认超时时间为 60s
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
   return fetch(opts.url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + localStorage.getItem('token'),
       ...opts.headers,
     },
     body: JSON.stringify(opts.body),
+    signal,
   })
     .then((response) => {
       // 获取 Content-Type 头部信息
@@ -27,8 +35,12 @@ export const adapter = async (opts: AdapterOpts) => {
       if (err.name === 'AbortError') {
         console.log('Request timed out and was aborted');
       }
+      console.error(err);
       return {
         code: 500,
       };
+    })
+    .finally(() => {
+      clearTimeout(timer);
     });
 };
