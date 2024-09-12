@@ -39,10 +39,18 @@ const adapter = async (opts) => {
     });
 };
 
+/**
+ * const query = new Query();
+ * const res = await query.post({
+ *   path: 'demo',
+ *   key: '1',
+ *  });
+ */
 class Query {
     adapter;
     url;
     beforeRequest;
+    afterResponse;
     headers;
     timeout;
     constructor(opts) {
@@ -71,10 +79,19 @@ class Query {
         if (beforeRequest) {
             await beforeRequest(req);
         }
-        return adapter(req);
+        return adapter(req).then(async (res) => {
+            res.success = res.code === 200;
+            if (options?.afterResponse) {
+                return await options.afterResponse(res);
+            }
+            return res;
+        });
     }
     before(fn) {
         this.beforeRequest = fn;
+    }
+    after(fn) {
+        this.afterResponse = fn;
     }
 }
 
