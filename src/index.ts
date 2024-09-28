@@ -1,5 +1,6 @@
 import { adapter } from './adapter.ts';
-export {QueryWs} from './ws.ts'
+import { QueryWs } from './ws.ts';
+export { QueryOpts };
 type Fn = (opts: {
   url?: string;
   headers?: Record<string, string>;
@@ -37,8 +38,10 @@ type DataOpts = Partial<QueryOpts> & {
  *   path: 'demo',
  *   key: '1',
  *  });
+ *
+ * U是参数 V是返回值
  */
-export class Query {
+export class Query<U = any, V = any> {
   adapter: typeof adapter;
   url: string;
   beforeRequest?: Fn;
@@ -53,10 +56,10 @@ export class Query {
     };
     this.timeout = opts?.timeout || 60000; // 默认超时时间为 60s
   }
-  async get<T, S>(params: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
+  async get<T = any, S = any>(params: Record<string, any> & Data & U & T, options?: DataOpts): Promise<Result<V & S>> {
     return this.post(params, options);
   }
-  async post<T, S>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
+  async post<T = any, S = any>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
     const url = options?.url || this.url;
     const headers = { ...this.headers, ...options?.headers };
     const adapter = options?.adapter || this.adapter;
@@ -84,6 +87,40 @@ export class Query {
   }
   after(fn: (result: Result) => Promise<any>) {
     this.afterResponse = fn;
+  }
+}
+/**
+ * 前端调用后端QueryRouter
+ */
+export class QueryClient<U = any, V = any> extends Query<U, V> {
+  tokenName: string;
+  storage: Storage;
+  token: string;
+  qws: QueryWs;
+  constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage }) {
+    super(opts);
+    this.tokenName = opts?.tokenName || 'token';
+    this.storage = opts?.storage || localStorage;
+    this.beforeRequest = async (opts) => {
+      const token = this.token || this.getToken();
+      if (token) {
+        opts.headers = {
+          ...opts.headers,
+          Authorization: `Bearer ${token}`,
+        };
+      }
+      return opts;
+    };
+    this.qws = new QueryWs({ url: opts?.url });
+  }
+  getToken() {
+    return this.storage.getItem(this.tokenName);
+  }
+  saveToken(token: string) {
+    this.storage.setItem(this.tokenName, token);
+  }
+  removeToken() {
+    this.storage.removeItem(this.tokenName);
   }
 }
 

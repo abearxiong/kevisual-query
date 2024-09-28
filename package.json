@@ -1,6 +1,6 @@
 {
   "name": "@kevisual/query",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,8 +14,11 @@
   "files": [
     "dist"
   ],
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "kevisual",
+    "query"
+  ],
+  "author": "abearxiong",
   "license": "ISC",
   "description": "",
   "devDependencies": {
@@ -30,6 +33,10 @@
   "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/abearxiong/kevisual-query.git"
   },
   "exports": {
     ".": {

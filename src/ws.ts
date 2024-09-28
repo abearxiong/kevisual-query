@@ -58,6 +58,7 @@ export class QueryWs {
     };
     ws.onclose = () => {
       store.getState().setConnected(false);
+      store.getState().setStatus('disconnected');
       this.ws = null;
     };
   }
