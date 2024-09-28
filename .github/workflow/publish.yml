@@ -1,0 +1,35 @@
+name: Publish to npm
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # 当推送带有版本号的 tag 时触发，例如 v1.0.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Clone current Git repository
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+      # Setop 2: list files in current directory
+      - name: List files in current directory
+        run: ls -al
+      # Step 3: Setup Node.js and install dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.6'
+          registry-url: 'https://registry.npmjs.org/'
+      - name: npm whoami
+        run: |
+          npm whoami
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: npm install
+      # Step 5: Publish to npm
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # 使用 GitHub Secrets 来安全存储 npm token
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}  # 使用 GitHub Secrets 来安全存储 npm token
