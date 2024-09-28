@@ -1,5 +1,5 @@
 import { adapter } from './adapter.ts';
-export {QueryWs} from './ws.ts'
+export { QueryWs } from './ws.ts';
 type Fn = (opts: {
   url?: string;
   headers?: Record<string, string>;
@@ -38,7 +38,7 @@ type DataOpts = Partial<QueryOpts> & {
  *   key: '1',
  *  });
  */
-export class Query {
+export class Query<U = any, V = any> {
   adapter: typeof adapter;
   url: string;
   beforeRequest?: Fn;
@@ -53,10 +53,10 @@ export class Query {
     };
     this.timeout = opts?.timeout || 60000; // 默认超时时间为 60s
   }
-  async get<T, S>(params: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
+  async get<T = any, S = any>(params: Record<string, any> & Data & U & T, options?: DataOpts): Promise<Result<V & S>> {
     return this.post(params, options);
   }
-  async post<T, S>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
+  async post<T = any, S = any>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
     const url = options?.url || this.url;
     const headers = { ...this.headers, ...options?.headers };
     const adapter = options?.adapter || this.adapter;
