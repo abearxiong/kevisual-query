@@ -64,6 +64,7 @@ export class Query<U = any, V = any> {
     const headers = { ...this.headers, ...options?.headers };
     const adapter = options?.adapter || this.adapter;
     const beforeRequest = options?.beforeRequest || this.beforeRequest;
+    const afterResponse = options?.afterResponse || this.afterResponse;
     const timeout = options?.timeout || this.timeout;
     const req = {
       url: url,
@@ -76,8 +77,8 @@ export class Query<U = any, V = any> {
     }
     return adapter(req).then(async (res) => {
       res.success = res.code === 200;
-      if (options?.afterResponse) {
-        return await options.afterResponse(res);
+      if (afterResponse) {
+        return await afterResponse(res);
       }
       return res;
     });
