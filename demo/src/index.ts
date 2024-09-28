@@ -1,5 +1,6 @@
 // console.log('Hello World');
 import { adapter, Query } from '@abearxiong/query';
+import { QueryWs } from '@abearxiong/query/ws';
 
 window.onload = async () => {
   // const res = await adapter({
@@ -27,4 +28,13 @@ window.onload = async () => {
     },
   );
   console.log(res);
+
+  const queryWs = new QueryWs({ url: '/api/router' });
+  // queryWs.conn
+  queryWs.listenConnect(() => {
+    console.log('Connected');
+  });
+  queryWs.listenConnect(() => {
+    console.log('Connected2');
+  });
 };

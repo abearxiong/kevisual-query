@@ -9,9 +9,16 @@ export default defineConfig({
     port: 6102,
     // host: '::',
     proxy: {
-      '/api/router': {
-        target: 'http://127.0.0.1:3003',
+      '/api': {
+        target: 'http://127.0.0.1:4000',
         changeOrigin: true,
+      },
+      '/api/router': {
+        target: 'ws://localhost:4000',
+        changeOrigin: true,
+        ws: true,
+        rewriteWsOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
   },
