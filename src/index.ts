@@ -1,6 +1,6 @@
 import { adapter } from './adapter.ts';
 import { QueryWs } from './ws.ts';
-export { QueryOpts };
+export { QueryOpts, QueryWs };
 type Fn = (opts: {
   url?: string;
   headers?: Record<string, string>;
