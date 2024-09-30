@@ -45,22 +45,31 @@ export class QueryWs {
   /**
    * 连接 WebSocket
    */
-  connect() {
+  async connect(opts?: { timeout?: number }) {
     const store = this.store;
     const connected = store.getState().connected;
     if (connected) {
-      return;
+      return Promise.resolve(true);
     }
-    const ws = this.ws || new WebSocket(this.url);
-    ws.onopen = () => {
-      store.getState().setConnected(true);
-      store.getState().setStatus('connected');
-    };
-    ws.onclose = () => {
-      store.getState().setConnected(false);
-      store.getState().setStatus('disconnected');
-      this.ws = null;
-    };
+    return new Promise((resolve, reject) => {
+      const ws = this.ws || new WebSocket(this.url);
+      const timeout = opts?.timeout || 5 * 60 * 1000; // 默认 2 分钟
+      let timer = setTimeout(() => {
+        console.error('WebSocket 连接超时');
+        reject('timeout');
+      }, timeout);
+      ws.onopen = () => {
+        store.getState().setConnected(true);
+        store.getState().setStatus('connected');
+        resolve(true);
+        clearTimeout(timer);
+      };
+      ws.onclose = () => {
+        store.getState().setConnected(false);
+        store.getState().setStatus('disconnected');
+        this.ws = null;
+      };
+    });
   }
 
   listenConnect(callback: () => void) {
@@ -140,5 +149,11 @@ export class QueryWs {
     } else {
       ws.send(data as string);
     }
+  }
+  getOpen() {
+    if (!this.ws) {
+      return false;
+    }
+    return this.ws.readyState === WebSocket.OPEN;
   }
 }
