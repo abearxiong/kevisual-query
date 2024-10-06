@@ -1,5 +1,5 @@
 import { adapter } from './adapter.ts';
-import { QueryWs } from './ws.ts';
+import { QueryWs, QueryWsOpts } from './ws.ts';
 export { QueryOpts, QueryWs };
 type Fn = (opts: {
   url?: string;
@@ -98,7 +98,7 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
   storage: Storage;
   token: string;
   qws: QueryWs;
-  constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage }) {
+  constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage; io?: boolean }) {
     super(opts);
     this.tokenName = opts?.tokenName || 'token';
     this.storage = opts?.storage || localStorage;
@@ -112,7 +112,12 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
       }
       return opts;
     };
-    this.qws = new QueryWs({ url: opts?.url });
+    if (opts?.io) {
+      this.createWs();
+    }
+  }
+  createWs(opts?: QueryWsOpts) {
+    this.qws = new QueryWs({ url: this.url });
   }
   getToken() {
     return this.storage.getItem(this.tokenName);

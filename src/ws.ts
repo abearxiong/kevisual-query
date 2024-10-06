@@ -9,7 +9,7 @@ type QueryWsStore = {
 };
 export type QuerySelectState = 'connecting' | 'connected' | 'disconnected';
 export type QueryWsStoreListener = (newState: QueryWsStore, oldState: QueryWsStore) => void;
-type QueryWsOpts = {
+export type QueryWsOpts = {
   url?: string;
   store?: StoreApi<QueryWsStore>;
   ws?: WebSocket;
