@@ -4,6 +4,8 @@
 
 主要目的：请求路径默认`/api/router`，使用`post`,`post`的数据分流使用`path`和`key`.
 
+适配后端的项目 [@kevisual/router](https://git.xiongxiao.me/kevisual/router)
+
 ## query
 
 
