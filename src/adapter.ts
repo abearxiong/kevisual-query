@@ -7,7 +7,7 @@ type AdapterOpts = {
 export const adapter = async (opts: AdapterOpts) => {
   const controller = new AbortController();
   const signal = controller.signal;
-  const timeout = opts.timeout || 60000; // 默认超时时间为 60s
+  const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   const timer = setTimeout(() => {
     controller.abort();
   }, timeout);

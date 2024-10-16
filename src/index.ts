@@ -54,7 +54,7 @@ export class Query<U = any, V = any> {
     this.headers = opts?.headers || {
       'Content-Type': 'application/json',
     };
-    this.timeout = opts?.timeout || 60000; // 默认超时时间为 60s
+    this.timeout = opts?.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   }
   async get<T = any, S = any>(params: Record<string, any> & Data & U & T, options?: DataOpts): Promise<Result<V & S>> {
     return this.post(params, options);
@@ -117,7 +117,7 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
     }
   }
   createWs(opts?: QueryWsOpts) {
-    this.qws = new QueryWs({ url: this.url });
+    this.qws = new QueryWs({ url: this.url, ...opts });
   }
   getToken() {
     return this.storage.getItem(this.tokenName);
@@ -129,5 +129,6 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
     this.storage.removeItem(this.tokenName);
   }
 }
+export const client = new QueryClient();
 
 export { adapter };
