@@ -1,7 +1,8 @@
 import { adapter } from './adapter.ts';
 import { QueryWs, QueryWsOpts } from './ws.ts';
-export { QueryOpts, QueryWs };
 import { Query } from './query.ts';
+
+export { QueryOpts, QueryWs, Query, QueryWsOpts, adapter };
 
 type QueryOpts = {
   url?: string;
@@ -50,5 +51,3 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
   }
 }
 export const client = new QueryClient();
-
-export { adapter };
