@@ -1,6 +1,6 @@
 {
   "name": "@kevisual/query",
-  "version": "0.0.7-alpha.1",
+  "version": "0.0.7-alpha.2",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "build": "npm run clean && rollup -c",
-    "test": "NODE_ENV=development node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles",
+    "build:app": "npm run build && rsync dist/* ../deploy/dist",
     "clean": "rm -rf dist"
   },
   "files": [
@@ -27,8 +27,9 @@
     "rollup": "^4.21.2",
     "ts-node": "^10.9.2",
     "tslib": "^2.7.0",
+    "typescript": "^5.5.4",
     "zustand": "^4.5.5",
-    "typescript": "^5.5.4"
+    "rollup-plugin-dts": "^6.1.1"
   },
   "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447",
   "publishConfig": {
@@ -40,16 +41,17 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "import": "./dist/query-browser.js",
+      "require": "./dist/query-browser.js"
     },
-    "./node": {
-      "import": "./dist/node-adapter.js",
-      "require": "./dist/node-adapter.js"
+    "./query": {
+      "import": "./dist/query.js",
+      "require": "./dist/query.js"
     },
     "./ws": {
-      "import": "./dist/ws.js",
-      "require": "./dist/ws.js"
+      "import": "./dist/query-ws.js",
+      "require": "./dist/query-ws.js"
     }
-  }
+  },
+  "dependencies": {}
 }

@@ -8,10 +8,10 @@
     "allowJs": true,
     "newLine": "LF",
     "baseUrl": "./",
+    "declaration": false,
     "typeRoots": [
       "node_modules/@types",
     ],
-    "declaration": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "NodeNext",
