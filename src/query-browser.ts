@@ -18,6 +18,7 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
   tokenName: string;
   storage: Storage;
   token: string;
+  // 默认不使用ws
   qws: QueryWs;
   constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage; io?: boolean }) {
     super(opts);
@@ -50,4 +51,5 @@ export class QueryClient<U = any, V = any> extends Query<U, V> {
     this.storage.removeItem(this.tokenName);
   }
 }
-export const client = new QueryClient();
+// 移除默认生成的实例
+// export const client = new QueryClient();
