@@ -10,9 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@abearxiong/query": "file:.."
+    "@abearxiong/query": "file:..",
+    "@kevisual/router": "0.0.6-alpha-4"
   },
   "devDependencies": {
-    "vite": "^5.4.3"
+    "vite": "^6.0.5"
   }
 }
