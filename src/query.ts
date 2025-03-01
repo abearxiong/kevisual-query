@@ -70,15 +70,33 @@ export class Query<U = any, V = any> {
       body,
       timeout,
     };
-    if (beforeRequest) {
-      await beforeRequest(req);
+    try {
+      if (beforeRequest) {
+        await beforeRequest(req);
+      }
+    } catch (e) {
+      console.error(e);
+      return {
+        code: 500,
+        success: false,
+        message: 'api request beforeFn error',
+      };
     }
     return adapter(req).then(async (res) => {
-      res.success = res.code === 200;
-      if (afterResponse) {
-        return await afterResponse(res);
+      try {
+        res.success = res.code === 200;
+        if (afterResponse) {
+          return await afterResponse(res);
+        }
+        return res;
+      } catch (e) {
+        console.error(e);
+        return {
+          code: 500,
+          success: false,
+          message: 'api request afterFn error',
+        };
       }
-      return res;
     });
   }
   before(fn: Fn) {
