@@ -1,6 +1,6 @@
 {
   "name": "@kevisual/query",
-  "version": "0.0.9-alpha.1",
+  "version": "0.0.9-alpha.2",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -51,6 +51,10 @@
     "./ws": {
       "import": "./dist/query-ws.js",
       "require": "./dist/query-ws.js"
+    },
+    "./query-ai": {
+      "import": "./dist/query-ai.js",
+      "require": "./dist/query-ai.js"
     }
   },
   "dependencies": {
