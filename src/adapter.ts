@@ -4,7 +4,14 @@ type AdapterOpts = {
   body?: Record<string, any>;
   timeout?: number;
 };
-export const adapter = async (opts: AdapterOpts) => {
+
+/**
+ *
+ * @param opts
+ * @param overloadOpts 覆盖fetch的默认配置
+ * @returns
+ */
+export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => {
   const controller = new AbortController();
   const signal = controller.signal;
   const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
@@ -20,6 +27,7 @@ export const adapter = async (opts: AdapterOpts) => {
     },
     body: JSON.stringify(opts.body),
     signal,
+    ...overloadOpts,
   })
     .then((response) => {
       // 获取 Content-Type 头部信息
@@ -44,3 +52,7 @@ export const adapter = async (opts: AdapterOpts) => {
       clearTimeout(timer);
     });
 };
+/**
+ * adapter
+ */
+export const queryFetch = adapter;

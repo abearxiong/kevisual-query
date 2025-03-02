@@ -65,4 +65,20 @@ export default [
     },
     plugins: [dts()],
   },
+  {
+    input: 'src/adapter.ts',
+    output: {
+      file: 'dist/query-adapter.js',
+      format: 'es',
+    },
+    plugins: [resolve(), typescript()],
+  },
+  {
+    input: 'src/adapter.ts', // TypeScript 入口文件
+    output: {
+      file: 'dist/query-adapter.d.ts', // 输出文件
+      format: 'es', // 输出格式设置为 ES 模块
+    },
+    plugins: [dts()],
+  },
 ];
