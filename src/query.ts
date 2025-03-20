@@ -18,13 +18,13 @@ export type QueryOpts = {
   headers?: Record<string, string>;
   timeout?: number;
 };
-type Data = {
+export type Data = {
   path?: string;
   key?: string;
   payload?: Record<string, any>;
   [key: string]: any;
 };
-type Result<S = any> = {
+export type Result<S = any> = {
   code: number;
   data?: S;
   message?: string;
