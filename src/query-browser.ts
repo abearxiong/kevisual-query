@@ -14,7 +14,7 @@ type QueryOpts = {
 /**
  * 前端调用后端QueryRouter
  */
-export class QueryClient<U = any, V = any> extends Query<U, V> {
+export class QueryClient<R = any> extends Query<R> {
   tokenName: string;
   storage: Storage;
   token: string;

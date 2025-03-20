@@ -1,4 +1,9 @@
 import { adapter } from './adapter.ts';
+/**
+ * 请求前处理函数
+ * @param opts 请求配置
+ * @returns 请求配置
+ */
 type Fn = (opts: {
   url?: string;
   headers?: Record<string, string>;
@@ -24,11 +29,22 @@ type Result<S = any> = {
   data?: S;
   message?: string;
   success: boolean;
+  /**
+   * 是否不返回 message
+   */
+  noMsg?: boolean;
+  /**
+   * 显示错误, 当 handle的信息被处理的时候，如果不是success，同时自己设置了noMsg，那么就不显示错误信息了，因为被处理。
+   *
+   * 日常: fetch().then(res=>if(res.sucess){message.error('error')})的时候，比如401被处理过了，就不再提示401错误了。
+   *
+   */
+  showError: (fn?: () => void) => void;
 };
 // 额外功能
 type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
-  afterResponse?: (result: Result) => Promise<any>;
+  afterResponse?: <S, U = S>(result: Result<S>) => Promise<U>;
 };
 /**
  * const query = new Query();
@@ -39,7 +55,7 @@ type DataOpts = Partial<QueryOpts> & {
  *
  * U是参数 V是返回值
  */
-export class Query<U = any, V = any> {
+export class Query<R = any> {
   adapter: typeof adapter;
   url: string;
   beforeRequest?: Fn;
@@ -54,10 +70,26 @@ export class Query<U = any, V = any> {
     };
     this.timeout = opts?.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   }
-  async get<T = any, S = any>(params: Record<string, any> & Data & U & T, options?: DataOpts): Promise<Result<V & S>> {
+  /**
+   * 发送 get 请求，转到 post 请求
+   *  T是请求类型自定义
+   *  S是返回类型自定义
+   * @param params 请求参数
+   * @param options 请求配置
+   * @returns 请求结果
+   */
+  async get<T = any, S = any>(params: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<R & S>> {
     return this.post(params, options);
   }
-  async post<T = any, S = any>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<S>> {
+  /**
+   * 发送 post 请求
+   *  T是请求类型自定义
+   *  S是返回类型自定义
+   * @param body 请求体
+   * @param options 请求配置
+   * @returns 请求结果
+   */
+  async post<T = any, S = any>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<R & S>> {
     const url = options?.url || this.url;
     const headers = { ...this.headers, ...options?.headers };
     const adapter = options?.adapter || this.adapter;
@@ -75,11 +107,12 @@ export class Query<U = any, V = any> {
         await beforeRequest(req);
       }
     } catch (e) {
-      console.error(e);
+      console.error('request beforeFn error', e, req);
       return {
         code: 500,
         success: false,
         message: 'api request beforeFn error',
+        showError: () => {},
       };
     }
     return adapter(req).then(async (res) => {
@@ -88,20 +121,38 @@ export class Query<U = any, V = any> {
         if (afterResponse) {
           return await afterResponse(res);
         }
+        /**
+         * 显示错误
+         * @param fn 错误处理函数
+         */
+        res.showError = (fn?: () => void) => {
+          if (!res.success && !res.noResult) {
+            fn?.();
+          }
+        };
         return res;
       } catch (e) {
-        console.error(e);
+        console.error('request error', e, req);
         return {
           code: 500,
           success: false,
           message: 'api request afterFn error',
+          showError: () => {},
         };
       }
     });
   }
+  /**
+   * 请求前处理，设置请求前处理函数
+   * @param fn 处理函数
+   */
   before(fn: Fn) {
     this.beforeRequest = fn;
   }
+  /**
+   * 请求后处理，设置请求后处理函数
+   * @param fn 处理函数
+   */
   after(fn: (result: Result) => Promise<any>) {
     this.afterResponse = fn;
   }
