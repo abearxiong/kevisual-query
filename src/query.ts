@@ -55,7 +55,7 @@ type DataOpts = Partial<QueryOpts> & {
  *
  * U是参数 V是返回值
  */
-export class Query<R = any> {
+export class Query {
   adapter: typeof adapter;
   url: string;
   beforeRequest?: Fn;
@@ -78,7 +78,7 @@ export class Query<R = any> {
    * @param options 请求配置
    * @returns 请求结果
    */
-  async get<T = any, S = any>(params: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<R & S>> {
+  async get<R = any, P = any>(params: Data & P, options?: DataOpts): Promise<Result<R>> {
     return this.post(params, options);
   }
   /**
@@ -89,7 +89,7 @@ export class Query<R = any> {
    * @param options 请求配置
    * @returns 请求结果
    */
-  async post<T = any, S = any>(body: Record<string, any> & Data & T, options?: DataOpts): Promise<Result<R & S>> {
+  async post<R = any, P = any>(body: Data & P, options?: DataOpts): Promise<Result<R>> {
     const url = options?.url || this.url;
     const headers = { ...this.headers, ...options?.headers };
     const adapter = options?.adapter || this.adapter;
