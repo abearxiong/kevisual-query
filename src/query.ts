@@ -4,7 +4,7 @@ import { adapter } from './adapter.ts';
  * @param opts 请求配置
  * @returns 请求配置
  */
-type Fn = (opts: {
+export type Fn = (opts: {
   url?: string;
   headers?: Record<string, string>;
   body?: Record<string, any>;
@@ -42,9 +42,27 @@ export type Result<S = any> = {
   showError: (fn?: () => void) => void;
 };
 // 额外功能
-type DataOpts = Partial<QueryOpts> & {
+export type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
-  afterResponse?: <S, U = S>(result: Result<S>) => Promise<U>;
+  afterResponse?: <S, U = S>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<U>;
+};
+/**
+ * 设置基础响应, 设置 success 和 showError,
+ * success 是 code 是否等于 200
+ * showError 是 如果 success 为 false 且 noMsg 为 false, 则调用 showError
+ * @param res 响应
+ */
+export const setBaseResponse = (res: Result) => {
+  res.success = res.code === 200;
+  /**
+   * 显示错误
+   * @param fn 错误处理函数
+   */
+  res.showError = (fn?: () => void) => {
+    if (!res.success && !res.noMsg) {
+      fn?.();
+    }
+  };
 };
 /**
  * const query = new Query();
@@ -59,7 +77,7 @@ export class Query {
   adapter: typeof adapter;
   url: string;
   beforeRequest?: Fn;
-  afterResponse?: (result: Result) => Promise<any>;
+  afterResponse?: DataOpts['afterResponse'];
   headers?: Record<string, string>;
   timeout?: number;
   constructor(opts?: QueryOpts) {
@@ -117,19 +135,15 @@ export class Query {
     }
     return adapter(req).then(async (res) => {
       try {
-        res.success = res.code === 200;
+        setBaseResponse(res);
         if (afterResponse) {
-          return await afterResponse(res);
+          return await afterResponse(res, {
+            req,
+            res,
+            fetch: adapter,
+          });
         }
-        /**
-         * 显示错误
-         * @param fn 错误处理函数
-         */
-        res.showError = (fn?: () => void) => {
-          if (!res.success && !res.noResult) {
-            fn?.();
-          }
-        };
+
         return res;
       } catch (e) {
         console.error('request error', e, req);
@@ -153,7 +167,7 @@ export class Query {
    * 请求后处理，设置请求后处理函数
    * @param fn 处理函数
    */
-  after(fn: (result: Result) => Promise<any>) {
+  after(fn: (result: Result, req?: any) => Promise<any>) {
     this.afterResponse = fn;
   }
 }
