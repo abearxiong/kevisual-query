@@ -44,7 +44,7 @@ export type Result<S = any> = {
 // 额外功能
 export type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
-  afterResponse?: <S, U = S>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<U>;
+  afterResponse?: <S = any>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<S>;
 };
 /**
  * 设置基础响应, 设置 success 和 showError,
@@ -80,6 +80,11 @@ export class Query {
   afterResponse?: DataOpts['afterResponse'];
   headers?: Record<string, string>;
   timeout?: number;
+  /**
+   * 需要突然停止请求，比如401的时候
+   */
+  stop?: boolean;
+
   constructor(opts?: QueryOpts) {
     this.adapter = opts?.adapter || adapter;
     this.url = opts?.url || '/api/router';
@@ -87,6 +92,12 @@ export class Query {
       'Content-Type': 'application/json',
     };
     this.timeout = opts?.timeout || 60000 * 3; // 默认超时时间为 60s * 3
+  }
+  /**
+   * 突然停止请求
+   */
+  setStop(stop: boolean) {
+    this.stop = stop;
   }
   /**
    * 发送 get 请求，转到 post 请求
@@ -132,6 +143,22 @@ export class Query {
         message: 'api request beforeFn error',
         showError: () => {},
       };
+    }
+    if (this.stop) {
+      const that = this;
+      await new Promise((resolve) => {
+        let timer = 0;
+        const detect = setInterval(() => {
+          if (!that.stop) {
+            clearInterval(detect);
+            resolve(true);
+          }
+          timer++;
+          if (timer > 30) {
+            console.error('request stop: timeout', req.url, timer);
+          }
+        }, 1000);
+      });
     }
     return adapter(req).then(async (res) => {
       try {
