@@ -47,31 +47,42 @@ export class QueryWs {
    */
   async connect(opts?: { timeout?: number }) {
     const store = this.store;
+    const that = this;
     const connected = store.getState().connected;
     if (connected) {
       return Promise.resolve(true);
     }
     return new Promise((resolve, reject) => {
-      const ws = this.ws || new WebSocket(this.url);
-      const timeout = opts?.timeout || 5 * 60 * 1000; // 默认 2 分钟
+      const ws = that.ws || new WebSocket(that.url);
+      const timeout = opts?.timeout || 5 * 60 * 1000; // 默认 5 分钟
       let timer = setTimeout(() => {
+        const isOpen = ws.readyState === WebSocket.OPEN;
+        if (isOpen) {
+          console.log('WebSocket 连接成功 in timer');
+          resolve(true);
+          return;
+        }
         console.error('WebSocket 连接超时');
         reject('timeout');
       }, timeout);
-      ws.onopen = () => {
+      ws.onopen = (ev) => {
         store.getState().setConnected(true);
         store.getState().setStatus('connected');
         resolve(true);
         clearTimeout(timer);
       };
-      ws.onclose = () => {
+      ws.onclose = (ev) => {
         store.getState().setConnected(false);
         store.getState().setStatus('disconnected');
         this.ws = null;
       };
     });
   }
-
+  /**
+   * ws.onopen 必须用这个去获取，否者会丢失链接信息
+   * @param callback
+   * @returns
+   */
   listenConnect(callback: () => void) {
     const store = this.store;
     const { connected } = store.getState();
@@ -96,10 +107,41 @@ export class QueryWs {
     );
     return cancel;
   }
+  listenClose(callback: () => void) {
+    const store = this.store;
+    const { status } = store.getState();
+    if (status === 'disconnected') {
+      callback();
+    }
+    const subscriptionOne = (selector: (state: QueryWsStore) => QueryWsStore['status'], listener: QueryWsStoreListener) => {
+      const unsubscribe = store.subscribe((newState: any, oldState: any) => {
+        if (selector(newState) !== selector(oldState)) {
+          listener(newState, oldState);
+          unsubscribe();
+        }
+      });
+      return unsubscribe;
+    };
+    const cancel = subscriptionOne(
+      (state) => state.status,
+      (newState, oldState) => {
+        if (newState.status === 'disconnected') {
+          callback();
+        }
+      },
+    );
+    return cancel;
+  }
   onMessage<T = any, U = any>(
     fn: (data: U, event: MessageEvent) => void,
     opts?: {
+      /**
+       * 是否将数据转换为 JSON
+       */
       isJson?: boolean;
+      /**
+       * 选择器
+       */
       selector?: (data: T) => U;
     },
   ) {
@@ -136,7 +178,26 @@ export class QueryWs {
     store.getState().setConnected(false);
     store.getState().setStatus('disconnected');
   }
-  send<T = any, U = any>(data: T, opts?: { isJson?: boolean; wrapper?: (data: T) => U }) {
+  /**
+   * 发送消息
+   *
+   * @param data
+   * @param opts
+   * @returns
+   */
+  send<T = any, U = any>(
+    data: T,
+    opts?: {
+      /**
+       * 是否将数据转换为 JSON
+       */
+      isJson?: boolean;
+      /**
+       * 包装数据
+       */
+      wrapper?: (data: T) => U;
+    },
+  ) {
     const ws = this.ws;
     const isJson = opts?.isJson ?? true;
     const wrapper = opts?.wrapper;

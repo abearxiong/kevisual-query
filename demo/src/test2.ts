@@ -1,4 +1,5 @@
-import { QueryClient } from '@abearxiong/query';
+// @ts-ignore
+import { QueryClient } from '@kevisual/query';
 
 const query = new QueryClient({ url: '/api/router', io: true });
 

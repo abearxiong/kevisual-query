@@ -1,6 +1,6 @@
 {
   "name": "@kevisual/query",
-  "version": "0.0.14",
+  "version": "0.0.15-alpha.1",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm run clean && rollup -c",
     "build:app": "npm run build && rsync dist/* ../deploy/dist",
+    "dev:lib": "rollup -c -w",
     "clean": "rm -rf dist"
   },
   "files": [
