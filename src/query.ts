@@ -1,4 +1,4 @@
-import { adapter } from './adapter.ts';
+import { adapter, Method } from './adapter.ts';
 /**
  * 请求前处理函数
  * @param opts 请求配置
@@ -17,6 +17,8 @@ export type QueryOpts = {
   adapter?: typeof adapter;
   headers?: Record<string, string>;
   timeout?: number;
+  method?: Method;
+  [key: string]: any;
 };
 export type Data = {
   path?: string;
@@ -76,7 +78,7 @@ export const setBaseResponse = (res: Result) => {
 export class Query {
   adapter: typeof adapter;
   url: string;
-  beforeRequest?: Fn;
+  beforeRequest?: DataOpts['beforeRequest'];
   afterResponse?: DataOpts['afterResponse'];
   headers?: Record<string, string>;
   timeout?: number;
@@ -120,20 +122,22 @@ export class Query {
    */
   async post<R = any, P = any>(body: Data & P, options?: DataOpts): Promise<Result<R>> {
     const url = options?.url || this.url;
-    const headers = { ...this.headers, ...options?.headers };
-    const adapter = options?.adapter || this.adapter;
-    const beforeRequest = options?.beforeRequest || this.beforeRequest;
-    const afterResponse = options?.afterResponse || this.afterResponse;
-    const timeout = options?.timeout || this.timeout;
+    const { headers, adapter, beforeRequest, afterResponse, timeout, ...rest } = options || {};
+    const _headers = { ...this.headers, ...headers };
+    const _adapter = adapter || this.adapter;
+    const _beforeRequest = beforeRequest || this.beforeRequest;
+    const _afterResponse = afterResponse || this.afterResponse;
+    const _timeout = timeout || this.timeout;
     const req = {
       url: url,
-      headers: headers,
+      headers: _headers,
       body,
-      timeout,
+      timeout: _timeout,
+      ...rest,
     };
     try {
-      if (beforeRequest) {
-        await beforeRequest(req);
+      if (_beforeRequest) {
+        await _beforeRequest(req);
       }
     } catch (e) {
       console.error('request beforeFn error', e, req);
@@ -160,11 +164,11 @@ export class Query {
         }, 1000);
       });
     }
-    return adapter(req).then(async (res) => {
+    return _adapter(req).then(async (res) => {
       try {
         setBaseResponse(res);
-        if (afterResponse) {
-          return await afterResponse(res, {
+        if (_afterResponse) {
+          return await _afterResponse(res, {
             req,
             res,
             fetch: adapter,
@@ -187,14 +191,14 @@ export class Query {
    * 请求前处理，设置请求前处理函数
    * @param fn 处理函数
    */
-  before(fn: Fn) {
+  before(fn: DataOpts['beforeRequest']) {
     this.beforeRequest = fn;
   }
   /**
    * 请求后处理，设置请求后处理函数
    * @param fn 处理函数
    */
-  after(fn: (result: Result, req?: any) => Promise<any>) {
+  after(fn: DataOpts['afterResponse']) {
     this.afterResponse = fn;
   }
 }

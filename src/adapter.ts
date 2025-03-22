@@ -1,8 +1,11 @@
-type AdapterOpts = {
+export const methods = ['GET', 'POST'] as const;
+export type Method = (typeof methods)[number];
+export type AdapterOpts = {
   url: string;
   headers?: Record<string, string>;
   body?: Record<string, any>;
   timeout?: number;
+  method?: Method;
 };
 
 /**
@@ -18,16 +21,21 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
   const timer = setTimeout(() => {
     controller.abort();
   }, timeout);
-
-  return fetch(opts.url, {
-    method: 'POST',
+  let method = overloadOpts?.method || opts.method || 'POST';
+  let url = new URL(opts.url, window.location.origin);
+  const isGet = method === 'GET';
+  if (isGet) {
+    url.search = new URLSearchParams(opts.body).toString();
+  }
+  return fetch(url, {
+    method: method.toUpperCase(),
     headers: {
       'Content-Type': 'application/json',
       ...opts.headers,
     },
-    body: JSON.stringify(opts.body),
     signal,
     ...overloadOpts,
+    body: isGet ? undefined : JSON.stringify(opts.body),
   })
     .then((response) => {
       // 获取 Content-Type 头部信息
