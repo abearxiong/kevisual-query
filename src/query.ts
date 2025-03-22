@@ -46,7 +46,7 @@ export type Result<S = any> = {
 // 额外功能
 export type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
-  afterResponse?: <S = any>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<S>;
+  afterResponse?: <S = any>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<Result<S>>;
 };
 /**
  * 设置基础响应, 设置 success 和 showError,
