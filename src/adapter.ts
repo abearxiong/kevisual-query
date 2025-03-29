@@ -22,7 +22,14 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
     controller.abort();
   }, timeout);
   let method = overloadOpts?.method || opts.method || 'POST';
-  let url = new URL(opts.url, window.location.origin);
+  let origin = '';
+  let url: URL;
+  if (opts?.url?.startsWith('http')) {
+    url = new URL(opts.url);
+  } else {
+    origin = window?.location?.origin || 'http://localhost:11015';
+    url = new URL(opts.url, origin);
+  }
   const isGet = method === 'GET';
   if (isGet) {
     url.search = new URLSearchParams(opts.body).toString();
