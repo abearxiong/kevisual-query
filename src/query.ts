@@ -204,3 +204,16 @@ export class Query {
 }
 
 export { adapter };
+
+export class BaseQuery<T extends Query> {
+  query: T;
+  constructor({ query }: { query: T }) {
+    this.query = query;
+  }
+  post<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
+    return this.query.post(data, options);
+  }
+  get<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
+    return this.query.get(data, options);
+  }
+}

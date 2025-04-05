@@ -1,8 +1,11 @@
 import { adapter } from './adapter.ts';
 import { QueryWs, QueryWsOpts } from './ws.ts';
 import { Query } from './query.ts';
+import { BaseQuery } from './query.ts';
 
-export { QueryOpts, QueryWs, Query, QueryWsOpts, adapter };
+export { QueryOpts, QueryWs, Query, QueryWsOpts, adapter, BaseQuery };
+
+export type { DataOpts, Result, Data } from './query.ts';
 
 type QueryOpts = {
   url?: string;
