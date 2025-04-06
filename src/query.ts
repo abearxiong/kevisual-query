@@ -10,7 +10,7 @@ export type Fn = (opts: {
   body?: Record<string, any>;
   [key: string]: any;
   timeout?: number;
-}) => Promise<Record<string, any>>;
+}) => Promise<Record<string, any> | false>;
 
 export type QueryOpts = {
   url?: string;
@@ -65,6 +65,18 @@ export const setBaseResponse = (res: Result) => {
       fn?.();
     }
   };
+};
+export const wrapperError = ({ code, message }: { code?: number; message?: string }) => {
+  const result = {
+    code: code || 500,
+    success: false,
+    message: message || 'api request error',
+    showError: (fn?: () => void) => {
+      //
+    },
+    noMsg: true,
+  };
+  return result;
 };
 /**
  * const query = new Query();
@@ -137,16 +149,24 @@ export class Query {
     };
     try {
       if (_beforeRequest) {
-        await _beforeRequest(req);
+        const res = await _beforeRequest(req);
+        if (res === false) {
+          return wrapperError({
+            code: 500,
+            message: 'request is cancel',
+            // @ts-ignore
+            req: req,
+          });
+        }
       }
     } catch (e) {
       console.error('request beforeFn error', e, req);
-      return {
+      return wrapperError({
         code: 500,
-        success: false,
         message: 'api request beforeFn error',
-        showError: () => {},
-      };
+        // @ts-ignore
+        req: req,
+      });
     }
     if (this.stop) {
       const that = this;
@@ -177,13 +197,13 @@ export class Query {
 
         return res;
       } catch (e) {
-        console.error('request error', e, req);
-        return {
+        console.error('request afterFn error', e, req);
+        return wrapperError({
           code: 500,
-          success: false,
           message: 'api request afterFn error',
-          showError: () => {},
-        };
+          // @ts-ignore
+          req: req,
+        });
       }
     });
   }
@@ -205,7 +225,7 @@ export class Query {
 
 export { adapter };
 
-export class BaseQuery<T extends Query> {
+export class BaseQuery<T extends Query = Query> {
   query: T;
   constructor({ query }: { query: T }) {
     this.query = query;
