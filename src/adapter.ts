@@ -27,7 +27,7 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
   if (opts?.url?.startsWith('http')) {
     url = new URL(opts.url);
   } else {
-    origin = window?.location?.origin || 'http://localhost:11015';
+    origin = window?.location?.origin || 'http://localhost:51015';
     url = new URL(opts.url, origin);
   }
   const isGet = method === 'GET';

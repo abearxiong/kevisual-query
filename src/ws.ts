@@ -62,8 +62,8 @@ export class QueryWs {
           resolve(true);
           return;
         }
-        console.error('WebSocket 连接超时');
-        reject('timeout');
+        console.error('WebSocket 连接超时', that.url);
+        resolve(false);
       }, timeout);
       ws.onopen = (ev) => {
         store.getState().setConnected(true);
