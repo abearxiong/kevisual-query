@@ -21,8 +21,6 @@ export class QueryClient extends Query {
   tokenName: string;
   storage: Storage;
   token: string;
-  // 默认不使用ws
-  qws: QueryWs;
   constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage; io?: boolean }) {
     super(opts);
     this.tokenName = opts?.tokenName || 'token';

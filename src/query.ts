@@ -1,4 +1,5 @@
 import { adapter, Method } from './adapter.ts';
+import type { QueryWs } from './ws.ts';
 /**
  * 请求前处理函数
  * @param opts 请求配置
@@ -98,6 +99,8 @@ export class Query {
    * 需要突然停止请求，比如401的时候
    */
   stop?: boolean;
+  // 默认不使用ws
+  qws: QueryWs;
 
   constructor(opts?: QueryOpts) {
     this.adapter = opts?.adapter || adapter;
@@ -106,6 +109,9 @@ export class Query {
       'Content-Type': 'application/json',
     };
     this.timeout = opts?.timeout || 60000 * 3; // 默认超时时间为 60s * 3
+  }
+  setQueryWs(qws: QueryWs) {
+    this.qws = qws;
   }
   /**
    * 突然停止请求
@@ -228,7 +234,7 @@ export { adapter };
 export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; query?: any } = { queryChain: any; query?: T }> {
   query: T;
   queryDefine: R;
-  constructor(opts?: { query: T; queryDefine?: R; clientQuery?: T }) {
+  constructor(opts?: { query?: T; queryDefine?: R; clientQuery?: T }) {
     if (opts?.clientQuery) {
       this.query = opts.clientQuery;
     } else {
@@ -239,7 +245,7 @@ export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; qu
       this.queryDefine.query = this.query;
     }
   }
-  get chain(){
+  get chain(): R['queryChain'] {
     return this.queryDefine.queryChain;
   }
   post<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
