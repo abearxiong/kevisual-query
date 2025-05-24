@@ -1,9 +1,9 @@
 import { adapter } from './adapter.ts';
 import { QueryWs, QueryWsOpts } from './ws.ts';
-import { Query } from './query.ts';
+import { Query, ClientQuery } from './query.ts';
 import { BaseQuery, wrapperError } from './query.ts';
 
-export { QueryOpts, QueryWs, Query, QueryWsOpts, adapter, BaseQuery, wrapperError };
+export { QueryOpts, QueryWs, ClientQuery, Query, QueryWsOpts, adapter, BaseQuery, wrapperError };
 
 export type { DataOpts, Result, Data } from './query.ts';
 
@@ -15,7 +15,7 @@ type QueryOpts = {
 };
 
 /**
- * 前端调用后端QueryRouter
+ * 前端调用后端QueryRouter, 封装 beforeRequest 和 wss
  */
 export class QueryClient extends Query {
   tokenName: string;

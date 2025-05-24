@@ -239,7 +239,7 @@ export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; qu
       this.queryDefine.query = this.query;
     }
   }
-  chain() {
+  get chain(){
     return this.queryDefine.queryChain;
   }
   post<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
