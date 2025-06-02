@@ -15,10 +15,13 @@ export type Fn = (opts: {
 
 export type QueryOpts = {
   url?: string;
-  adapter?: typeof adapter;
   headers?: Record<string, string>;
+  body?: Record<string, any>;
   timeout?: number;
   method?: Method;
+  isBlob?: boolean; // 是否返回 Blob 对象
+
+  adapter?: typeof adapter;
   [key: string]: any;
 };
 export type Data = {
@@ -55,7 +58,7 @@ export type DataOpts = Partial<QueryOpts> & {
  * showError 是 如果 success 为 false 且 noMsg 为 false, 则调用 showError
  * @param res 响应
  */
-export const setBaseResponse = (res: Result) => {
+export const setBaseResponse = (res: Partial<Result>) => {
   res.success = res.code === 200;
   /**
    * 显示错误
@@ -66,6 +69,7 @@ export const setBaseResponse = (res: Result) => {
       fn?.();
     }
   };
+  return res as Result;
 };
 export const wrapperError = ({ code, message }: { code?: number; message?: string }) => {
   const result = {
@@ -226,6 +230,68 @@ export class Query {
    */
   after(fn: DataOpts['afterResponse']) {
     this.afterResponse = fn;
+  }
+  async fetchText(urlOrOptions?: string | QueryOpts, options?: QueryOpts): Promise<Result<any>> {
+    let _options = { ...options };
+    if (typeof urlOrOptions === 'string' && !_options.url) {
+      _options.url = urlOrOptions;
+    }
+    if (typeof urlOrOptions === 'object') {
+      _options = { ...urlOrOptions, ..._options };
+    }
+    const res = await adapter({
+      method: 'GET',
+      ..._options,
+      headers: {
+        ...this.headers,
+        ...(_options?.headers || {}),
+      },
+    });
+    if (!res.ok) {
+      return wrapperError({
+        code: res.status,
+        message: `fetch error: ${res.statusText}`,
+      });
+    }
+    const contentType = res.headers.get('Content-Type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await res.json();
+      const result = { code: res.status, data, success: res.ok };
+      return setBaseResponse(result);
+    }
+    if (contentType && contentType.includes('text/html')) {
+      const text = await res.text();
+      const result: Partial<Result> = {
+        code: res.status,
+        data: text,
+        success: res.ok,
+      };
+      return setBaseResponse(result);
+    }
+    if (contentType && contentType.includes('text/plain')) {
+      let text = await res.text();
+      // 处理特殊情况，比如返回的是纯文本
+      if (text.startsWith('{')) {
+        try {
+          text = JSON.parse(text);
+        } catch (e) {
+          // 如果解析失败，保持原样
+        }
+      }
+      const result: Partial<Result> = {
+        code: res.status,
+        data: text,
+        success: res.ok,
+      };
+      return setBaseResponse(result);
+    }
+    const blob = await res.blob();
+    const result: Partial<Result> = {
+      code: res.status,
+      data: blob,
+      success: res.ok,
+    };
+    return setBaseResponse(result);
   }
 }
 

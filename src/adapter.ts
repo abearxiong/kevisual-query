@@ -1,11 +1,12 @@
 export const methods = ['GET', 'POST'] as const;
 export type Method = (typeof methods)[number];
 export type AdapterOpts = {
-  url: string;
+  url?: string;
   headers?: Record<string, string>;
   body?: Record<string, any>;
   timeout?: number;
   method?: Method;
+  isBlob?: boolean; // 是否返回 Blob 对象
 };
 
 /**
@@ -17,6 +18,7 @@ export type AdapterOpts = {
 export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => {
   const controller = new AbortController();
   const signal = controller.signal;
+  const isBlob = opts.isBlob || false; // 是否返回 Blob 对象
   const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   const timer = setTimeout(() => {
     controller.abort();
@@ -47,8 +49,12 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
     .then((response) => {
       // 获取 Content-Type 头部信息
       const contentType = response.headers.get('Content-Type');
+      if (isBlob) {
+        return response.blob(); // 直接返回 Blob 对象
+      }
+      const isJson = contentType && contentType.includes('application/json');
       // 判断返回的数据类型
-      if (contentType && contentType.includes('application/json')) {
+      if (isJson) {
         return response.json(); // 解析为 JSON
       } else {
         return response.text(); // 解析为文本
