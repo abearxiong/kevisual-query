@@ -50,21 +50,21 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
     ...overloadOpts,
     body: isGet ? undefined : JSON.stringify(opts.body),
   })
-    .then((response) => {
+    .then(async (response) => {
       // 获取 Content-Type 头部信息
       const contentType = response.headers.get('Content-Type');
       if (isBlob) {
-        return response.blob(); // 直接返回 Blob 对象
+        return await response.blob(); // 直接返回 Blob 对象
       }
       const isJson = contentType && contentType.includes('application/json');
       // 判断返回的数据类型
       if (isJson) {
-        return response.json(); // 解析为 JSON
+        return await response.json(); // 解析为 JSON
       } else if (isTextForContentType(contentType)) {
         return {
           code: 200,
           status: response.status,
-          data: response.text(), // 直接返回文本内容
+          data: await response.text(), // 直接返回文本内容
         };
       } else {
         return response;

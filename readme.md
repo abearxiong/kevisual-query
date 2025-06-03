@@ -1,13 +1,12 @@
 # query
 
-对应的 fetch 内容的一部分功能的封装。
+对 fetch 功能的的一部分功能的封装。主要处理header的token的提交和response中的处理json。
 
 主要目的：请求路径默认`/api/router`，使用`post`,`post`的数据分流使用`path`和`key`.
 
 适配后端的项目 [@kevisual/router](https://git.xiongxiao.me/kevisual/router)
 
 ## query
-
 
 ```ts
 const query = new Query();
@@ -35,4 +34,21 @@ type Data = {
 type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
 };
+```
+
+## 适配的@kevisual/router的代码
+
+```ts
+import { App } from '@kevisual/router';
+const app = new App();
+
+app
+  .route({
+    path: 'demo',
+    key: '1',
+  })
+  .define(async (ctx) => {
+    ctx.body = 234;
+  })
+  .addTo(app);
 ```
