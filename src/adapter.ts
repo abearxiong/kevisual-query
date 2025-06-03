@@ -8,7 +8,11 @@ export type AdapterOpts = {
   method?: Method;
   isBlob?: boolean; // 是否返回 Blob 对象
 };
-
+export const isTextForContentType = (contentType: string | null) => {
+  if (!contentType) return false;
+  const textTypes = ['text/', 'xml', 'html', 'javascript', 'css', 'csv', 'plain', 'x-www-form-urlencoded'];
+  return textTypes.some((type) => contentType.includes(type));
+};
 /**
  *
  * @param opts
@@ -56,8 +60,14 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
       // 判断返回的数据类型
       if (isJson) {
         return response.json(); // 解析为 JSON
+      } else if (isTextForContentType(contentType)) {
+        return {
+          code: 200,
+          status: response.status,
+          data: response.text(), // 直接返回文本内容
+        };
       } else {
-        return response.text(); // 解析为文本
+        return response;
       }
     })
     .catch((err) => {

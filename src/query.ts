@@ -1,4 +1,4 @@
-import { adapter, Method } from './adapter.ts';
+import { adapter, isTextForContentType, Method } from './adapter.ts';
 import type { QueryWs } from './ws.ts';
 /**
  * 请求前处理函数
@@ -247,51 +247,7 @@ export class Query {
         ...(_options?.headers || {}),
       },
     });
-    if (!res.ok) {
-      return wrapperError({
-        code: res.status,
-        message: `fetch error: ${res.statusText}`,
-      });
-    }
-    const contentType = res.headers.get('Content-Type');
-    if (contentType && contentType.includes('application/json')) {
-      const data = await res.json();
-      const result = { code: res.status, data, success: res.ok };
-      return setBaseResponse(result);
-    }
-    if (contentType && contentType.includes('text/html')) {
-      const text = await res.text();
-      const result: Partial<Result> = {
-        code: res.status,
-        data: text,
-        success: res.ok,
-      };
-      return setBaseResponse(result);
-    }
-    if (contentType && contentType.includes('text/plain')) {
-      let text = await res.text();
-      // 处理特殊情况，比如返回的是纯文本
-      if (text.startsWith('{')) {
-        try {
-          text = JSON.parse(text);
-        } catch (e) {
-          // 如果解析失败，保持原样
-        }
-      }
-      const result: Partial<Result> = {
-        code: res.status,
-        data: text,
-        success: res.ok,
-      };
-      return setBaseResponse(result);
-    }
-    const blob = await res.blob();
-    const result: Partial<Result> = {
-      code: res.status,
-      data: blob,
-      success: res.ok,
-    };
-    return setBaseResponse(result);
+    return setBaseResponse(res);
   }
 }
 
