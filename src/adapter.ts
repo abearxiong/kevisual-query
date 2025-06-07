@@ -8,7 +8,8 @@ export type AdapterOpts = {
   body?: Record<string, any> | FormData; // body 可以是对象、字符串或 FormData
   timeout?: number;
   method?: Method;
-  isBlob?: boolean; // 是否返回 Blob 对象
+  isBlob?: boolean; // 是否返回 Blob 对象, 第一优先
+  isText?: boolean; // 是否返回文本内容， 第二优先
   isPostFile?: boolean; // 是否为文件上传
 };
 export const isTextForContentType = (contentType: string | null) => {
@@ -22,16 +23,18 @@ export const isTextForContentType = (contentType: string | null) => {
  * @param overloadOpts 覆盖fetch的默认配置
  * @returns
  */
-export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => {
+export const adapter = async (opts: AdapterOpts = {}, overloadOpts?: RequestInit) => {
   const controller = new AbortController();
   const signal = controller.signal;
   const isBlob = opts.isBlob || false; // 是否返回 Blob 对象
+  const isText = opts.isText || false; // 是否返回文本内容
   const isPostFile = opts.isPostFile || false; // 是否为文件上传
   const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   const timer = setTimeout(() => {
     controller.abort();
   }, timeout);
-  let method = overloadOpts?.method || opts.method || 'POST';
+  let method = overloadOpts?.method || opts?.method || 'POST';
+  let headers = { ...opts?.headers, ...overloadOpts?.headers };
   let origin = '';
   let url: URL;
   if (opts?.url?.startsWith('http')) {
@@ -50,17 +53,18 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
   } else if (isPostFile) {
     body = opts.body as FormData; // 如果是文件上传，直接使用 FormData
   } else {
+    headers = {
+      'Content-Type': 'application/json',
+      ...headers,
+    };
     body = JSON.stringify(opts.body); // 否则将对象转换为 JSON 字符串
   }
   return fetch(url, {
     method: method.toUpperCase(),
-    headers: {
-      'Content-Type': 'application/json',
-      ...opts.headers,
-    },
     signal,
-    ...overloadOpts,
     body: body,
+    ...overloadOpts,
+    headers: headers,
   })
     .then(async (response) => {
       // 获取 Content-Type 头部信息
@@ -70,7 +74,7 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
       }
       const isJson = contentType && contentType.includes('application/json');
       // 判断返回的数据类型
-      if (isJson) {
+      if (isJson && !isText) {
         return await response.json(); // 解析为 JSON
       } else if (isTextForContentType(contentType)) {
         return {
