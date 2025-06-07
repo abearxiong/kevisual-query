@@ -16,10 +16,11 @@ export type Fn = (opts: {
 export type QueryOpts = {
   url?: string;
   headers?: Record<string, string>;
-  body?: Record<string, any>;
+  body?: Record<string, any> | FormData; // body 可以是对象、字符串或 FormData
   timeout?: number;
   method?: Method;
   isBlob?: boolean; // 是否返回 Blob 对象
+  isPostFile?: boolean; // 是否为文件上传
 
   adapter?: typeof adapter;
   [key: string]: any;

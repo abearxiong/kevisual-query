@@ -1,12 +1,15 @@
 export const methods = ['GET', 'POST'] as const;
 export type Method = (typeof methods)[number];
+
+type SimpleObject = Record<string, any>;
 export type AdapterOpts = {
   url?: string;
   headers?: Record<string, string>;
-  body?: Record<string, any>;
+  body?: Record<string, any> | FormData; // body 可以是对象、字符串或 FormData
   timeout?: number;
   method?: Method;
   isBlob?: boolean; // 是否返回 Blob 对象
+  isPostFile?: boolean; // 是否为文件上传
 };
 export const isTextForContentType = (contentType: string | null) => {
   if (!contentType) return false;
@@ -23,6 +26,7 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
   const controller = new AbortController();
   const signal = controller.signal;
   const isBlob = opts.isBlob || false; // 是否返回 Blob 对象
+  const isPostFile = opts.isPostFile || false; // 是否为文件上传
   const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   const timer = setTimeout(() => {
     controller.abort();
@@ -38,7 +42,15 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
   }
   const isGet = method === 'GET';
   if (isGet) {
-    url.search = new URLSearchParams(opts.body).toString();
+    url.search = new URLSearchParams(opts.body as SimpleObject).toString();
+  }
+  let body: string | FormData | undefined = undefined;
+  if (isGet) {
+    body = undefined;
+  } else if (isPostFile) {
+    body = opts.body as FormData; // 如果是文件上传，直接使用 FormData
+  } else {
+    body = JSON.stringify(opts.body); // 否则将对象转换为 JSON 字符串
   }
   return fetch(url, {
     method: method.toUpperCase(),
@@ -48,7 +60,7 @@ export const adapter = async (opts: AdapterOpts, overloadOpts?: RequestInit) => 
     },
     signal,
     ...overloadOpts,
-    body: isGet ? undefined : JSON.stringify(opts.body),
+    body: body,
   })
     .then(async (response) => {
       // 获取 Content-Type 头部信息
