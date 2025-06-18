@@ -44,6 +44,10 @@ export type Result<S = any> = {
 export type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
   afterResponse?: <S = any>(result: Result<S>, ctx?: { req?: any; res?: any; fetch?: any }) => Promise<Result<S>>;
+  /**
+   * 是否在stop的时候不请求
+   */
+  noStop?: boolean;
 };
 /**
  * 设置基础响应, 设置 success 和 showError,
@@ -171,7 +175,7 @@ export class Query {
         req: req,
       });
     }
-    if (this.stop) {
+    if (this.stop && !options?.noStop) {
       const that = this;
       await new Promise((resolve) => {
         let timer = 0;
