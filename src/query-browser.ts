@@ -1,9 +1,9 @@
 import { adapter } from './adapter.ts';
 import { QueryWs, QueryWsOpts } from './ws.ts';
-import { Query, ClientQuery } from './query.ts';
-import { BaseQuery, wrapperError } from './query.ts';
+import { Query } from './query.ts';
+import { wrapperError } from './query.ts';
 
-export { QueryOpts, QueryWs, ClientQuery, Query, QueryWsOpts, adapter, BaseQuery, wrapperError };
+export { QueryOpts, QueryWs, Query, QueryWsOpts, adapter, wrapperError };
 
 export type { DataOpts, Result, Data } from './query.ts';
 

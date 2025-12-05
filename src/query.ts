@@ -1,4 +1,4 @@
-import { adapter, isTextForContentType, Method, AdapterOpts } from './adapter.ts';
+import { adapter, Method, AdapterOpts } from './adapter.ts';
 import type { QueryWs } from './ws.ts';
 /**
  * 请求前处理函数
@@ -92,7 +92,13 @@ export const wrapperError = ({ code, message }: { code?: number; message?: strin
 export class Query {
   adapter: typeof adapter;
   url: string;
+  /**
+   * 请求前处理函数
+   */
   beforeRequest?: DataOpts['beforeRequest'];
+  /**  
+   *  请求后处理函数
+   */
   afterResponse?: DataOpts['afterResponse'];
   headers?: Record<string, string>;
   timeout?: number;
@@ -215,14 +221,14 @@ export class Query {
     });
   }
   /**
-   * 请求前处理，设置请求前处理函数
+   * 设置请求前处理，设置请求前处理函数
    * @param fn 处理函数
    */
   before(fn: DataOpts['beforeRequest']) {
     this.beforeRequest = fn;
   }
   /**
-   * 请求后处理，设置请求后处理函数
+   * 设置请求后处理，设置请求后处理函数
    * @param fn 处理函数
    */
   after(fn: DataOpts['afterResponse']) {
@@ -249,34 +255,3 @@ export class Query {
 }
 
 export { adapter };
-
-export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; query?: any } = { queryChain: any; query?: T }> {
-  query: T;
-  queryDefine: R;
-  constructor(opts?: { query?: T; queryDefine?: R; clientQuery?: T }) {
-    if (opts?.clientQuery) {
-      this.query = opts.clientQuery;
-    } else {
-      this.query = opts?.query;
-    }
-    if (opts.queryDefine) {
-      this.queryDefine = opts.queryDefine;
-      this.queryDefine.query = this.query;
-    }
-  }
-  get chain(): R['queryChain'] {
-    return this.queryDefine.queryChain;
-  }
-  post<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
-    return this.query.post(data, options);
-  }
-  get<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
-    return this.query.get(data, options);
-  }
-}
-
-export class ClientQuery extends Query {
-  constructor(opts?: QueryOpts) {
-    super({ ...opts, url: opts?.url || '/client/router' });
-  }
-}

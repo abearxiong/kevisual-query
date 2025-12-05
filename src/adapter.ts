@@ -5,16 +5,31 @@ type SimpleObject = Record<string, any>;
 export type AdapterOpts = {
   url?: string;
   headers?: Record<string, string>;
+  /**
+   * 只用户POST请求，传递的查询参数，
+   * GET请求默认方body自己转化为查询参数
+   */
+  params?: Record<string, any>;
   body?: Record<string, any> | FormData; // body 可以是对象、字符串或 FormData
   timeout?: number;
   method?: Method;
+  /**
+   * @deprecated use responseType
+   */
   isBlob?: boolean; // 是否返回 Blob 对象, 第一优先
+  /**
+   * @deprecated use responseType
+   */
   isText?: boolean; // 是否返回文本内容， 第二优先
+  /**
+   * 响应类型,
+   * */
+  responseType?: 'json' | 'text' | 'blob';
   isPostFile?: boolean; // 是否为文件上传
 };
 export const isTextForContentType = (contentType: string | null) => {
   if (!contentType) return false;
-  const textTypes = ['text/', 'xml', 'html', 'javascript', 'css', 'csv', 'plain', 'x-www-form-urlencoded'];
+  const textTypes = ['text/', 'xml', 'html', 'javascript', 'css', 'csv', 'plain', 'x-www-form-urlencoded', 'md'];
   return textTypes.some((type) => contentType.includes(type));
 };
 /**
@@ -26,9 +41,14 @@ export const isTextForContentType = (contentType: string | null) => {
 export const adapter = async (opts: AdapterOpts = {}, overloadOpts?: RequestInit) => {
   const controller = new AbortController();
   const signal = controller.signal;
-  const isBlob = opts.isBlob || false; // 是否返回 Blob 对象
-  const isText = opts.isText || false; // 是否返回文本内容
   const isPostFile = opts.isPostFile || false; // 是否为文件上传
+  let responseType = opts.responseType || 'json'; // 响应类型
+  if (opts.isBlob) {
+    responseType = 'blob';
+  } else if (opts.isText) {
+    responseType = 'text';
+  }
+
   const timeout = opts.timeout || 60000 * 3; // 默认超时时间为 60s * 3
   const timer = setTimeout(() => {
     controller.abort();
@@ -46,6 +66,9 @@ export const adapter = async (opts: AdapterOpts = {}, overloadOpts?: RequestInit
   const isGet = method === 'GET';
   if (isGet) {
     url.search = new URLSearchParams(opts.body as SimpleObject).toString();
+  } else {
+    const params = opts.params || {};
+    url.search = new URLSearchParams(params as SimpleObject).toString();
   }
   let body: string | FormData | undefined = undefined;
   if (isGet) {
@@ -69,9 +92,10 @@ export const adapter = async (opts: AdapterOpts = {}, overloadOpts?: RequestInit
     .then(async (response) => {
       // 获取 Content-Type 头部信息
       const contentType = response.headers.get('Content-Type');
-      if (isBlob) {
+      if (responseType === 'blob') {
         return await response.blob(); // 直接返回 Blob 对象
       }
+      const isText = responseType === 'text';
       const isJson = contentType && contentType.includes('application/json');
       // 判断返回的数据类型
       if (isJson && !isText) {

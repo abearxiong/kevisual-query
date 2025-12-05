@@ -81,20 +81,4 @@ export default [
     },
     plugins: [dts()],
   },
-  {
-    input: 'src/query-ai.ts',
-    output: {
-      file: 'dist/query-ai.js',
-      format: 'es',
-    },
-    plugins: [resolve(), typescript()],
-  },
-  {
-    input: 'src/query-ai.ts', // TypeScript 入口文件
-    output: {
-      file: 'dist/query-ai.d.ts', // 输出文件
-      format: 'es', // 输出格式设置为 ES 模块
-    },
-    plugins: [dts()],
-  },
 ];
