@@ -255,3 +255,36 @@ export class Query {
 }
 
 export { adapter };
+
+
+/** @deprecated */
+export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; query?: any } = { queryChain: any; query?: T }> {
+  query: T;
+  queryDefine: R;
+  constructor(opts?: { query?: T; queryDefine?: R; clientQuery?: T }) {
+    if (opts?.clientQuery) {
+      this.query = opts.clientQuery;
+    } else {
+      this.query = opts?.query;
+    }
+    if (opts.queryDefine) {
+      this.queryDefine = opts.queryDefine;
+      this.queryDefine.query = this.query;
+    }
+  }
+  get chain(): R['queryChain'] {
+    return this.queryDefine.queryChain;
+  }
+  post<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
+    return this.query.post(data, options);
+  }
+  get<R = any, P = any>(data: P, options?: DataOpts): Promise<Result<R>> {
+    return this.query.get(data, options);
+  }
+}
+
+export class ClientQuery extends Query {
+  constructor(opts?: QueryOpts) {
+    super({ ...opts, url: opts?.url || '/client/router' });
+  }
+}
