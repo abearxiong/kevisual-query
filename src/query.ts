@@ -23,23 +23,11 @@ export type Data = {
   payload?: Record<string, any>;
   [key: string]: any;
 };
-export type Result<S = any> = {
+export type Result<S = any, U = {}> = {
   code: number;
   data?: S;
   message?: string;
-  success: boolean;
-  /**
-   * 是否不返回 message
-   */
-  noMsg?: boolean;
-  /**
-   * 显示错误, 当 handle的信息被处理的时候，如果不是success，同时自己设置了noMsg，那么就不显示错误信息了，因为被处理。
-   *
-   * 日常: fetch().then(res=>if(res.sucess){message.error('error')})的时候，比如401被处理过了，就不再提示401错误了。
-   *
-   */
-  showError: (fn?: () => void) => void;
-};
+} & U;
 // 额外功能
 export type DataOpts = Partial<QueryOpts> & {
   beforeRequest?: Fn;
@@ -55,7 +43,7 @@ export type DataOpts = Partial<QueryOpts> & {
  * showError 是 如果 success 为 false 且 noMsg 为 false, 则调用 showError
  * @param res 响应
  */
-export const setBaseResponse = (res: Partial<Result>) => {
+export const setBaseResponse = (res: Partial<Result & { success?: boolean; showError?: (fn?: () => void) => void; noMsg?: boolean }>) => {
   res.success = res.code === 200;
   /**
    * 显示错误
@@ -199,7 +187,6 @@ export class Query {
     }
     return _adapter(req).then(async (res) => {
       try {
-        setBaseResponse(res);
         if (_afterResponse) {
           return await _afterResponse(res, {
             req,
@@ -250,7 +237,13 @@ export class Query {
         ...(_options?.headers || {}),
       },
     });
-    return setBaseResponse(res);
+    if (res && !res.code) {
+      return {
+        code: 200,
+        data: res,
+      }
+    }
+    return res;
   }
 }
 
