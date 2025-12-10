@@ -102,7 +102,7 @@ export const adapter = async (opts: AdapterOpts = {}, overloadOpts?: RequestInit
         return await response.json(); // 解析为 JSON
       } else if (isTextForContentType(contentType)) {
         return {
-          code: 200,
+          code: response.status,
           status: response.status,
           data: await response.text(), // 直接返回文本内容
         };
