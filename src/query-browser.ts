@@ -1,10 +1,10 @@
 import { adapter } from './adapter.ts';
 import { QueryWs, QueryWsOpts } from './ws.ts';
 import { Query, ClientQuery } from './query.ts';
-import { BaseQuery, wrapperError } from './query.ts';
+import { BaseQuery, QueryOptions, wrapperError } from './query.ts';
 
 export { QueryOpts, QueryWs, ClientQuery, Query, QueryWsOpts, adapter, BaseQuery, wrapperError };
-
+export { QueryOptions }
 export type { DataOpts, Result, Data } from './query.ts';
 
 type QueryOpts = {
@@ -12,6 +12,7 @@ type QueryOpts = {
   adapter?: typeof adapter;
   headers?: Record<string, string>;
   timeout?: number;
+  isClient?: boolean;
 };
 
 /**
@@ -21,7 +22,7 @@ export class QueryClient extends Query {
   tokenName: string;
   storage: Storage;
   token: string;
-  constructor(opts?: QueryOpts & { tokenName?: string; storage?: Storage; io?: boolean }) {
+  constructor(opts?: QueryOptions & { tokenName?: string; storage?: Storage; io?: boolean }) {
     super(opts);
     this.tokenName = opts?.tokenName || 'token';
     this.storage = opts?.storage || localStorage;

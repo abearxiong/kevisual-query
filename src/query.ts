@@ -17,6 +17,14 @@ export type QueryOpts = {
   adapter?: typeof adapter;
   [key: string]: any;
 } & AdapterOpts;
+
+export type QueryOptions = {
+  url?: string;
+  adapter?: typeof adapter;
+  headers?: Record<string, string>;
+  timeout?: number;
+  isClient?: boolean;
+}
 export type Data = {
   path?: string;
   key?: string;
@@ -96,10 +104,11 @@ export class Query {
   stop?: boolean;
   // 默认不使用ws
   qws: QueryWs;
-
-  constructor(opts?: QueryOpts) {
+  isClient = false;
+  constructor(opts?: QueryOptions) {
     this.adapter = opts?.adapter || adapter;
-    this.url = opts?.url || '/api/router';
+    const defaultURL = opts?.isClient ? '/client/router' : '/api/router';
+    this.url = opts?.url || defaultURL;
     this.headers = opts?.headers || {
       'Content-Type': 'application/json',
     };
@@ -276,6 +285,10 @@ export class BaseQuery<T extends Query = Query, R extends { queryChain?: any; qu
   }
 }
 
+/**
+ * @deprecated
+ * 前端调用后端QueryRouter, 默认路径 /client/router
+ */
 export class ClientQuery extends Query {
   constructor(opts?: QueryOpts) {
     super({ ...opts, url: opts?.url || '/client/router' });
